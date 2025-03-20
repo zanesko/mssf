@@ -13,7 +13,7 @@ class Map:
       self.row = -1
       self.col = -1
       self.is_port = False
-      self.state = 0
+      self.state = 0          # 0:none   1:◵   2:◴   3:◷   4:◶   5:|   6:―   7:○   8:□
 
   def set_row_col(self, row, col) :
       self.row = row
@@ -105,9 +105,9 @@ def draw_canvas():
             spaceRect.topleft = ((j * 20), (i * 20))
             if L[i][j].state == 8 :
                 DISPLAYSURF.blit(state_img[8], spaceRect)
-            elif (i+j*69931+10) % 17 == 0 :
-                idx = (i+13*j) % 7 + 1
-                DISPLAYSURF.blit(state_img[idx], spaceRect)
+            #elif (i+j*69931+10) % 17 == 0 :
+            #    idx = (i+13*j) % 7 + 1
+            #    DISPLAYSURF.blit(state_img[idx], spaceRect)
 
     pygame.display.update()
     FPSCLOCK.tick()
