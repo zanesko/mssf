@@ -82,8 +82,10 @@ def draw_canvas():
             ROW = ypos // 20
             # overlay image at ROW, COL
             print("mousedown: ", ROW,COL)
-            if L[ROW][COL].is_port :
+            if L[ROW][COL].is_port:
                 L[ROW][COL].state = 8 - L[ROW][COL].state
+            elif L[ROW][COL].pd != 0.0:
+                L[ROW][COL].state = 7 - L[ROW][COL].state
         elif event.type == MOUSEMOTION :
             xpos = event.pos[0]
             COL = xpos // 20
@@ -105,6 +107,8 @@ def draw_canvas():
             spaceRect.topleft = ((j * 20), (i * 20))
             if L[i][j].state == 8 :
                 DISPLAYSURF.blit(state_img[8], spaceRect)
+            elif L[i][j].state == 7 :
+                DISPLAYSURF.blit(state_img[7], spaceRect)
             #elif (i+j*69931+10) % 17 == 0 :
             #    idx = (i+13*j) % 7 + 1
             #    DISPLAYSURF.blit(state_img[idx], spaceRect)
