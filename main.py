@@ -177,8 +177,10 @@ def draw_canvas():
     #draw text in key
     if L[ROW][COL].pd > 0:
         draw_text(str(L[ROW][COL].pd) + ", " + str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
-    else:
+    elif L[ROW][COL].pd < 0:
         draw_text(str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
+
+
     spaceRect = pygame.Rect(0, 0, 20, 20)
 
     # draw board
