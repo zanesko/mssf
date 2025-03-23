@@ -15,13 +15,14 @@ class Node:
 
 
 def heuristic(a, b):
-    """Manhattan distance heuristic for grid traversal."""
+    # Manhattan distance heuristic for grid traversal.
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-def a_star(grid, start, goal):
-    """Finds the shortest path in a grid using A* algorithm."""
-    rows, cols = len(grid), len(grid[0])
+def a_star(L, start, goal):
+    # Finds the shortest path from start to goal in L using A* algorithm
+    rows = len(L)
+    cols = len(L[0])
     open_set = []
     heapq.heappush(open_set, Node(*start, cost=0))
     closed_set = set()
@@ -43,9 +44,11 @@ def a_star(grid, start, goal):
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
             nx, ny = current.x + dx, current.y + dy
 
-            if 0 <= nx < rows and 0 <= ny < cols and grid[nx][ny] != 0:  # Ensure within bounds & not an obstacle
-                move_cost = 1 if grid[nx][ny] == -1 else grid[nx][ny]  # Use grid value as cost if positive
-                neighbor = Node(nx, ny, cost=current.cost + move_cost, parent=current)
+            if 0 <= nx < rows and 0 <= ny < cols and L[nx][ny] != 0:  # putative next location is not an obstacle
+                move_cost = 1
+                neighbor = Map[nx][ny]
+                neighbor.cost=current.cost + move_cost
+                neighbor.parent=current
                 neighbor.heuristic = heuristic((nx, ny), goal)
                 neighbor.total_cost = neighbor.cost + neighbor.heuristic
                 heapq.heappush(open_set, neighbor)
@@ -53,15 +56,15 @@ def a_star(grid, start, goal):
     return None  # No path found
 
 
-def find_nearest_goal(grid, start, goals):
-    """Finds the nearest goal using A* distance."""
+def find_nearest_goal(L, start, goals):
+    # Finds the nearest goal in L using A* distance.
     best_path = None
     best_goal = None
-    best_cost = float('inf')
+    best_cost = None
 
     for goal in goals:
-        path = a_star(grid, start, goal)
-        if path and len(path) < best_cost:
+        path = a_star(L, start, goal)
+        if path and (best_cost == None or len(path) < best_cost) :
             best_cost = len(path)
             best_goal = goal
             best_path = path
