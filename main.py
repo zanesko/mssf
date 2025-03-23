@@ -3,26 +3,9 @@ project SCIFAIR!
 zelda 08/09/24
 '''
 
-import random, copy, sys, pygame, io, math, mapdata
+import random, copy, sys, pygame, io, math, mapdata, heapq
 from pygame.locals import *
-
-
-class Map:
-  def __init__(self, pd) :
-      self.pd = pd
-      self.row = -1
-      self.col = -1
-      self.is_port = False
-      self.state = 0          # 0:none   1:◵   2:◴   3:◷   4:◶   5:|   6:―   7:○   8:□
-
-  def set_row_col(self, row, col) :
-      self.row = row
-      self.col = col
-
-  def __str__(self) :
-      return f"Map(pd={self.pd}, row={self.row}, col={self.col})"
-
-
+#global variables
 ROW = 0
 COL = 0
 FPS = 15
@@ -33,19 +16,55 @@ KEYYMARGIN = 450
 KEYXSIZE = 250
 KEYYSIZE = 370
 TEXTFONT = None
+BGCOLOR = (84, 130, 156)
 
 
-BGCOLOR = (84, 130, 156)
-BGCOLOR = (84, 130, 156)
+class Map:
+  def __init__(self, pd, cost=1, parent=None) :
+      self.pd = pd
+      self.row = -1
+      self.col = -1
+      self.is_port = False
+      self.state = 0          # 0:none   1:◵   2:◴   3:◷   4:◶   5:|   6:―   7:○   8:□
+      self.cost = cost  # g-score (distance from start)
+      self.parent = parent
+      self.heuristic = 0  # h-score (estimated distance to goal)
+      self.total_cost = 0  # f-score (g + h)
+
+  def set_row_col(self, row, col) :
+      self.row = row
+      self.col = col
+
+  def __lt__(self, other):
+        return self.total_cost < other.total_cost
+
+  def __str__(self) :
+      return f"Map(pd={self.pd}, row={self.row}, col={self.col})"
+
+
+
+
+
+'''
+INITIALIZATION CODE
+'''
 
 #image files below
 bg = pygame.image.load("windmap3.png")
 turbine = pygame.image.load("windturbineshadow.png")
 
 state_img = []
-state_img.append(None)                                # state = 0: nothing overlayed
+state_img.append(None)
+# state = 0: nothing overlayed
 for i in range(1, 9) :
-    state_img.append(pygame.image.load("state" + str(i) + ".png"))
+    if i == 7:
+        DFLT_IMG_SZ = (20,20)
+        img7 = pygame.image.load("windmill.png")
+        img7 = pygame.transform.scale(img7, DFLT_IMG_SZ)
+        state_img.append(img7)
+    else:
+        state_img.append(pygame.image.load("state" + str(i) + ".png"))
+
 
 # create a local 2D list, L, that is a 2D list of class objects
 L = copy.deepcopy(mapdata.L)
@@ -63,11 +82,71 @@ L[34][20].is_port = True         # Montreal
 L[36][24].is_port = True         # Portland
 L[38][23].is_port = True         # Boston
 L[40][20].is_port = True         # NY
-L[41][19].is_port = True         # Phila
+L[41][19].is_port = True         # Philly
 
-def draw_text(text, font, text_COL, x, y):
+
+
+'''
+ASTAR FUNCTIONS
+'''
+#distance formula - heuristic = hacky
+def heuristic(a, b):
+    """Manhattan distance heuristic for grid traversal."""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+def a_star(L, start, goal):
+    """Finds the shortest path in a grid using A* algorithm."""
+    rows, cols = len(L), len(L[0])
+    open_set = []
+    heapq.heappush(open_set, Map(*start, cost=0))
+    closed_set = set()
+
+    while open_set:
+        current = heapq.heappop(open_set)
+
+        if (current.row, current.col) in closed_set:
+            continue
+        closed_set.add((current.row, current.col))
+
+        if (current.row, current.col) == goal:
+            path = []
+            while current:
+                path.append((current.row, current.col))
+                current = current.parent
+            return path[::-1]  # Reverse the path
+
+        for drow, dcol in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
+            nrow, ncol = current.row + drow, current.y + dcol
+
+            if 0 <= nrow < rows and 0 <= ncol < cols and L[nrow][ncol] != 0:  # Ensure within bounds & not an obstacle
+                move_cost = 1
+                neighbor = Map(nrow, ncol, cost=current.cost + move_cost, parent=current)
+                neighbor.heuristic = heuristic((nrow, ncol), goal)
+                neighbor.total_cost = neighbor.cost + neighbor.heuristic
+                heapq.heappush(open_set, neighbor)
+
+    return None  # No path found
+
+
+def find_nearest_goal(L, start, goals):
+    """Finds the nearest goal using A* distance."""
+    best_path = None
+    best_goal = None
+    best_cost = float('inf')
+
+    for goal in goals:
+        path = a_star(L, start, goal)
+        if path and len(path) < best_cost:
+            best_cost = len(path)
+            best_goal = goal
+            best_path = path
+
+    return best_goal, best_path
+
+#pygame functions
+def draw_text(text, font, text_COL, row, col):
     img = font.render(text, True, text_COL)
-    DISPLAYSURF.blit(img, (x,y))
+    DISPLAYSURF.blit(img, (row, col))
 
 
 def draw_canvas():
@@ -96,8 +175,10 @@ def draw_canvas():
     pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
 
     #draw text in key
-    draw_text(str(L[ROW][COL].pd) + ", " + str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
-
+    if L[ROW][COL].pd > 0:
+        draw_text(str(L[ROW][COL].pd) + ", " + str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
+    else:
+        draw_text(str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
     spaceRect = pygame.Rect(0, 0, 20, 20)
 
     # draw board
