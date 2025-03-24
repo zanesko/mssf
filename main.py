@@ -124,7 +124,7 @@ def a_star(L, start_row, start_col, goal):
         for drow, dcol in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:  # Up, Down, Left, Right
             nrow, ncol = current.row + drow, current.col + dcol
 
-            if 0 <= nrow < rows and 0 <= ncol < cols and L[nrow][ncol].pd != 0.0:  # Ensure within bounds & not an obstacle
+            if 0 <= nrow < rows and 0 <= ncol < cols and (L[nrow][ncol].pd != 0.0 or L[nrow][ncol].is_port):  # Ensure within bounds & not an obstacle
                 move_cost = math.sqrt(drow**2 + dcol**2)
                 neighbor = Map(-2, nrow, ncol, current.cost + move_cost, current)
                 neighbor.heuristic = heuristic((nrow, ncol), goal)
