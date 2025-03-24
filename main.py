@@ -17,6 +17,7 @@ KEYXSIZE = 250
 KEYYSIZE = 370
 TEXTFONT = None
 BGCOLOR = (84, 130, 156)
+NUMPORTS = 0
 
 
 class Map:
@@ -150,9 +151,11 @@ def draw_text(text, font, text_COL, row, col):
 
 
 def draw_canvas():
-    global L, ROW, COL
+    global L, ROW, COL, NUMPORTS
     DISPLAYSURF.fill(BGCOLOR)
     DISPLAYSURF.blit(bg, (0,0))
+    # draw key rectangle (light blue)
+    pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
     for event in pygame.event.get():
         if event.type == MOUSEBUTTONDOWN :
             xpos = event.pos[0]
@@ -162,17 +165,24 @@ def draw_canvas():
             # overlay image at ROW, COL
             print("mousedown: ", ROW,COL)
             if L[ROW][COL].is_port:
-                L[ROW][COL].state = 8 - L[ROW][COL].state
-            elif L[ROW][COL].pd != 0.0:
-                L[ROW][COL].state = 7 - L[ROW][COL].state
+                if L[ROW][COL].state == 8 and NUMPORTS > 1:
+                    L[ROW][COL].state = 0
+                    NUMPORTS -= 1
+                elif L[ROW][COL].state == 0:
+                    NUMPORTS += 1
+                    L[ROW][COL].state = 8
+            elif L[ROW][COL].pd > 0 :
+                if L[ROW][COL].state == 7 :
+                    L[ROW][COL].state = 0
+                elif NUMPORTS > 0:
+                    L[ROW][COL].state = 7
         elif event.type == MOUSEMOTION :
             xpos = event.pos[0]
             COL = xpos // 20
             ypos = event.pos[1]
             ROW = ypos // 20
             print("mousemotion: ", ROW,COL)
-    #draw key rectangle (light blue)
-    pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+
 
     #draw text in key
     if L[ROW][COL].pd > 0:
