@@ -21,10 +21,10 @@ NUMPORTS = 0
 
 
 class Map:
-  def __init__(self, pd, cost=1, parent=None) :
+  def __init__(self, pd, row, col, cost=1, parent=None) :
       self.pd = pd
-      self.row = -1
-      self.col = -1
+      self.row = row
+      self.col = col
       self.is_port = False
       self.state = 0          # 0:none   1:◵   2:◴   3:◷   4:◶   5:|   6:―   7:○   8:□
       self.cost = cost  # g-score (distance from start)
@@ -72,7 +72,7 @@ L = copy.deepcopy(mapdata.L)
 for i in range(len(L)) :
     for j in range(len(L[i])) :
         # L[i][j] is the element
-        L[i][j] = Map(L[i][j])
+        L[i][j] = Map(L[i][j], i, j, 1, None)
 L[12][0].is_port = True          # Churchill
 L[26][28].is_port = True         # Sept-Iles
 L[30][43].is_port = True         # St John
@@ -95,11 +95,11 @@ def heuristic(a, b):
     """Manhattan distance heuristic for grid traversal."""
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def a_star(L, start, goal):
+def a_star(L, start_row, start_col, goal):
     """Finds the shortest path in a grid using A* algorithm."""
     rows, cols = len(L), len(L[0])
     open_set = []
-    heapq.heappush(open_set, Map(*start, cost=0))
+    heapq.heappush(open_set, Map(-2, start_row, start_col, 0, None))
     closed_set = set()
 
     while open_set:
@@ -117,11 +117,11 @@ def a_star(L, start, goal):
             return path[::-1]  # Reverse the path
 
         for drow, dcol in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
-            nrow, ncol = current.row + drow, current.y + dcol
+            nrow, ncol = current.row + drow, current.col + dcol
 
             if 0 <= nrow < rows and 0 <= ncol < cols and L[nrow][ncol] != 0:  # Ensure within bounds & not an obstacle
                 move_cost = 1
-                neighbor = Map(nrow, ncol, cost=current.cost + move_cost, parent=current)
+                neighbor = Map(nrow, ncol, current.cost + move_cost, current)
                 neighbor.heuristic = heuristic((nrow, ncol), goal)
                 neighbor.total_cost = neighbor.cost + neighbor.heuristic
                 heapq.heappush(open_set, neighbor)
@@ -129,14 +129,28 @@ def a_star(L, start, goal):
     return None  # No path found
 
 
-def find_nearest_goal(L, start, goals):
+def find_nearest_goal(L, start_row, start_col):
     """Finds the nearest goal using A* distance."""
+    goals = []
+    if L[12][0].state == 8: goals.append((12,0))
+    if L[26][28].state == 8: goals.append((26,28))
+    if L[30][43].state == 8: goals.append((30,43))
+    if L[33][35].state == 8: goals.append((33,35))
+    if L[35][31].state == 8: goals.append((35,31))
+    if L[31][23].state == 8: goals.append((31,23))
+    if L[34][20].state == 8: goals.append((34,20))
+    if L[36][24].state == 8: goals.append((36,24))
+    if L[38][23].state == 8: goals.append((38,23))
+    if L[40][20].state == 8: goals.append((40,20))
+    if L[41][19].state == 8: goals.append((41,19))
+
+
     best_path = None
     best_goal = None
     best_cost = float('inf')
 
     for goal in goals:
-        path = a_star(L, start, goal)
+        path = a_star(L, start_row, start_col, goal)
         if path and len(path) < best_cost:
             best_cost = len(path)
             best_goal = goal
@@ -176,6 +190,8 @@ def draw_canvas():
                     L[ROW][COL].state = 0
                 elif NUMPORTS > 0:
                     L[ROW][COL].state = 7
+                    find_nearest_goal(L, L[ROW][COL])
+                    #run astar algorithm
         elif event.type == MOUSEMOTION :
             xpos = event.pos[0]
             COL = xpos // 20
