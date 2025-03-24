@@ -63,6 +63,11 @@ for i in range(1, 9) :
         img7 = pygame.image.load("windmill.png")
         img7 = pygame.transform.scale(img7, DFLT_IMG_SZ)
         state_img.append(img7)
+    elif i == 1:
+        DFLT_IMG_SZ = (20, 20)
+        img1 = pygame.image.load("state1.png")
+        img1 = pygame.transform.scale(img1, DFLT_IMG_SZ)
+        state_img.append(img1)
     else:
         state_img.append(pygame.image.load("state" + str(i) + ".png"))
 
@@ -116,11 +121,11 @@ def a_star(L, start_row, start_col, goal):
                 current = current.parent
             return path[::-1]  # Reverse the path
 
-        for drow, dcol in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
+        for drow, dcol in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:  # Up, Down, Left, Right
             nrow, ncol = current.row + drow, current.col + dcol
 
-            if 0 <= nrow < rows and 0 <= ncol < cols and L[nrow][ncol] != 0:  # Ensure within bounds & not an obstacle
-                move_cost = 1
+            if 0 <= nrow < rows and 0 <= ncol < cols and L[nrow][ncol].pd != 0.0:  # Ensure within bounds & not an obstacle
+                move_cost = math.sqrt(drow**2 + dcol**2)
                 neighbor = Map(-2, nrow, ncol, current.cost + move_cost, current)
                 neighbor.heuristic = heuristic((nrow, ncol), goal)
                 neighbor.total_cost = neighbor.cost + neighbor.heuristic
