@@ -121,7 +121,7 @@ def a_star(L, start_row, start_col, goal):
 
             if 0 <= nrow < rows and 0 <= ncol < cols and L[nrow][ncol] != 0:  # Ensure within bounds & not an obstacle
                 move_cost = 1
-                neighbor = Map(nrow, ncol, current.cost + move_cost, current)
+                neighbor = Map(-2, nrow, ncol, current.cost + move_cost, current)
                 neighbor.heuristic = heuristic((nrow, ncol), goal)
                 neighbor.total_cost = neighbor.cost + neighbor.heuristic
                 heapq.heappush(open_set, neighbor)
@@ -155,8 +155,8 @@ def find_nearest_goal(L, start_row, start_col):
             best_cost = len(path)
             best_goal = goal
             best_path = path
-
-    return best_goal, best_path
+    print("DEBUG :: " + str(best_goal) + ", " + str(best_path))
+    return best_path
 
 #pygame functions
 def draw_text(text, font, text_COL, row, col):
@@ -177,7 +177,7 @@ def draw_canvas():
             ypos = event.pos[1]
             ROW = ypos // 20
             # overlay image at ROW, COL
-            print("mousedown: ", ROW,COL)
+            #print("mousedown: ", ROW,COL)
             if L[ROW][COL].is_port:
                 if L[ROW][COL].state == 8 and NUMPORTS > 1:
                     L[ROW][COL].state = 0
@@ -190,14 +190,16 @@ def draw_canvas():
                     L[ROW][COL].state = 0
                 elif NUMPORTS > 0:
                     L[ROW][COL].state = 7
-                    find_nearest_goal(L, L[ROW][COL])
+                    path = find_nearest_goal(L, ROW, COL)
+                    for i in range(len(path)):
+                        if i != len(path)-1 and i != 0:
+                            L[path[i][0]][path[i][1]].state = 1
                     #run astar algorithm
         elif event.type == MOUSEMOTION :
             xpos = event.pos[0]
             COL = xpos // 20
             ypos = event.pos[1]
             ROW = ypos // 20
-            print("mousemotion: ", ROW,COL)
 
 
     #draw text in key
@@ -218,6 +220,8 @@ def draw_canvas():
                 DISPLAYSURF.blit(state_img[8], spaceRect)
             elif L[i][j].state == 7 :
                 DISPLAYSURF.blit(state_img[7], spaceRect)
+            elif L[i][j].state == 1:
+                DISPLAYSURF.blit(state_img[1], spaceRect)
             #elif (i+j*69931+10) % 17 == 0 :
             #    idx = (i+13*j) % 7 + 1
             #    DISPLAYSURF.blit(state_img[idx], spaceRect)
