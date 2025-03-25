@@ -18,6 +18,7 @@ KEYYSIZE = 370
 TEXTFONT = None
 BGCOLOR = (84, 130, 156)
 NUMPORTS = 0
+NUMFARMS = 0
 MODE = 0  #user instructions splash screen, MODE = 1 is the regular game
 
 
@@ -172,7 +173,7 @@ def draw_text(text, font, text_COL, row, col):
 
 
 def draw_canvas():
-    global L, ROW, COL, NUMPORTS, MODE
+    global L, ROW, COL, NUMPORTS, NUMFARMS, MODE
     DISPLAYSURF.fill(BGCOLOR)
     DISPLAYSURF.blit(bg, (0,0))
     if MODE == 0:
@@ -211,18 +212,17 @@ def draw_canvas():
                 ROW = ypos // 20
                 # overlay image at ROW, COL
                 #print("mousedown: ", ROW,COL)
-                if L[ROW][COL].is_port:
+                if L[ROW][COL].is_port and NUMFARMS == 0:
                     if L[ROW][COL].state == 8 and NUMPORTS > 1:
                         L[ROW][COL].state = 0
                         NUMPORTS -= 1
-                    elif L[ROW][COL].state == 0:
-                        NUMPORTS += 1
+                    elif L[ROW][COL].state == 0 and NUMPORTS < 5:
+                        NUMPORTS +=1
                         L[ROW][COL].state = 8
-                elif L[ROW][COL].pd > 0 :
-                    if L[ROW][COL].state == 7 :
-                        L[ROW][COL].state = 0
-                    elif NUMPORTS > 0:
+                elif L[ROW][COL].pd > 0 and L[ROW][COL].state != 7:
+                    if 0 < NUMPORTS <= 5:
                         L[ROW][COL].state = 7
+                        NUMFARMS += 1
                         path = find_nearest_goal(L, ROW, COL)
                         for i in range(len(path)):
                             if i != len(path)-1 and i != 0 and L[path[i][0]][path[i][1]].state != 7:
@@ -237,9 +237,7 @@ def draw_canvas():
 
         #draw text in key
         if L[ROW][COL].pd > 0:
-            draw_text(str(L[ROW][COL].pd) + ", " + str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
-        elif L[ROW][COL].pd < 0:
-            draw_text(str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
+            draw_text(str(L[ROW][COL].pd) + " kW/m²",  TEXTFONT, (0, 0, 0), 1010, 475)
 
 
         spaceRect = pygame.Rect(0, 0, 20, 20)
