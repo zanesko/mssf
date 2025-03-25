@@ -18,6 +18,8 @@ KEYYSIZE = 370
 TEXTFONT = None
 BGCOLOR = (84, 130, 156)
 NUMPORTS = 0
+MODE = 0  #user instructions splash screen, MODE = 1 is the regular game
+
 
 
 class Map:
@@ -170,66 +172,92 @@ def draw_text(text, font, text_COL, row, col):
 
 
 def draw_canvas():
-    global L, ROW, COL, NUMPORTS
+    global L, ROW, COL, NUMPORTS, MODE
     DISPLAYSURF.fill(BGCOLOR)
     DISPLAYSURF.blit(bg, (0,0))
-    # draw key rectangle (light blue)
-    pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
-    for event in pygame.event.get():
-        if event.type == MOUSEBUTTONDOWN :
-            xpos = event.pos[0]
-            COL = xpos // 20
-            ypos = event.pos[1]
-            ROW = ypos // 20
-            # overlay image at ROW, COL
-            #print("mousedown: ", ROW,COL)
-            if L[ROW][COL].is_port:
-                if L[ROW][COL].state == 8 and NUMPORTS > 1:
-                    L[ROW][COL].state = 0
-                    NUMPORTS -= 1
-                elif L[ROW][COL].state == 0:
-                    NUMPORTS += 1
-                    L[ROW][COL].state = 8
-            elif L[ROW][COL].pd > 0 :
-                if L[ROW][COL].state == 7 :
-                    L[ROW][COL].state = 0
-                elif NUMPORTS > 0:
-                    L[ROW][COL].state = 7
-                    path = find_nearest_goal(L, ROW, COL)
-                    for i in range(len(path)):
-                        if i != len(path)-1 and i != 0:
-                            L[path[i][0]][path[i][1]].state = 1
-                    #run astar algorithm
-        elif event.type == MOUSEMOTION :
-            xpos = event.pos[0]
-            COL = xpos // 20
-            ypos = event.pos[1]
-            ROW = ypos // 20
+    if MODE == 0:
+        KEYXMARGIN = 240
+        KEYYMARGIN = 373
+        KEYXSIZE = 824
+        KEYYSIZE = 104
+        pygame.draw.rect(DISPLAYSURF, (150, 108, 175), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        KEYXMARGIN = 247
+        KEYYMARGIN = 380
+        KEYXSIZE = 810
+        KEYYSIZE = 90
+        pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        draw_text("Please select up to 5 ports before placing a wind farm.", TEXTFONT, (0,0,0), 290, 385)
+        draw_text("Click anywhere to continue.", TEXTFONT, (0,0,0), 460, 430)#user instructions
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONDOWN :
+                MODE = 1
+    else:
+        # draw key rectangle (light blue)
+        KEYXMARGIN = 993
+        KEYYMARGIN = 443
+        KEYXSIZE = 264
+        KEYYSIZE = 384
+        pygame.draw.rect(DISPLAYSURF, (150, 108, 175), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        KEYXMARGIN = 1000
+        KEYYMARGIN = 450
+        KEYXSIZE = 250
+        KEYYSIZE = 370
+        pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONDOWN :
+                xpos = event.pos[0]
+                COL = xpos // 20
+                ypos = event.pos[1]
+                ROW = ypos // 20
+                # overlay image at ROW, COL
+                #print("mousedown: ", ROW,COL)
+                if L[ROW][COL].is_port:
+                    if L[ROW][COL].state == 8 and NUMPORTS > 1:
+                        L[ROW][COL].state = 0
+                        NUMPORTS -= 1
+                    elif L[ROW][COL].state == 0:
+                        NUMPORTS += 1
+                        L[ROW][COL].state = 8
+                elif L[ROW][COL].pd > 0 :
+                    if L[ROW][COL].state == 7 :
+                        L[ROW][COL].state = 0
+                    elif NUMPORTS > 0:
+                        L[ROW][COL].state = 7
+                        path = find_nearest_goal(L, ROW, COL)
+                        for i in range(len(path)):
+                            if i != len(path)-1 and i != 0 and L[path[i][0]][path[i][1]].state != 7:
+                                L[path[i][0]][path[i][1]].state = 1
+                        #run astar algorithm
+            elif event.type == MOUSEMOTION :
+                xpos = event.pos[0]
+                COL = xpos // 20
+                ypos = event.pos[1]
+                ROW = ypos // 20
 
 
-    #draw text in key
-    if L[ROW][COL].pd > 0:
-        draw_text(str(L[ROW][COL].pd) + ", " + str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
-    elif L[ROW][COL].pd < 0:
-        draw_text(str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
+        #draw text in key
+        if L[ROW][COL].pd > 0:
+            draw_text(str(L[ROW][COL].pd) + ", " + str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
+        elif L[ROW][COL].pd < 0:
+            draw_text(str(ROW) + "," + str(COL), TEXTFONT, (0, 0, 0), 1010, 475)
 
 
-    spaceRect = pygame.Rect(0, 0, 20, 20)
+        spaceRect = pygame.Rect(0, 0, 20, 20)
 
-    # draw board
-    # for x in range(NUM_CHIPS):
-    for i in range(len(L)) :
-        for j in range(len(L[i])) :
-            spaceRect.topleft = ((j * 20), (i * 20))
-            if L[i][j].state == 8 :
-                DISPLAYSURF.blit(state_img[8], spaceRect)
-            elif L[i][j].state == 7 :
-                DISPLAYSURF.blit(state_img[7], spaceRect)
-            elif L[i][j].state == 1:
-                DISPLAYSURF.blit(state_img[1], spaceRect)
-            #elif (i+j*69931+10) % 17 == 0 :
-            #    idx = (i+13*j) % 7 + 1
-            #    DISPLAYSURF.blit(state_img[idx], spaceRect)
+        # draw board
+        # for x in range(NUM_CHIPS):
+        for i in range(len(L)) :
+            for j in range(len(L[i])) :
+                spaceRect.topleft = ((j * 20), (i * 20))
+                if L[i][j].state == 8 :
+                    DISPLAYSURF.blit(state_img[8], spaceRect)
+                elif L[i][j].state == 7 :
+                    DISPLAYSURF.blit(state_img[7], spaceRect)
+                elif L[i][j].state == 1:
+                    DISPLAYSURF.blit(state_img[1], spaceRect)
+                #elif (i+j*69931+10) % 17 == 0 :
+                #    idx = (i+13*j) % 7 + 1
+                #    DISPLAYSURF.blit(state_img[idx], spaceRect)
 
     pygame.display.update()
     FPSCLOCK.tick()
