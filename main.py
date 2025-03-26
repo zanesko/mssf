@@ -235,16 +235,37 @@ def draw_canvas():
                             L[ROW][COL].state = 0
                             NUMPORTS -= 1
                             BUDGET += PORTCOST
+                            KEYXMARGIN = 1030
+                            KEYYMARGIN = 539 # -2% of 550 - box starts earlier (to increase)
+                            KEYXSIZE = 90
+                            KEYYSIZE = 281 # +2% of 270 - height increases
+                            pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # money bar
                         elif L[ROW][COL].state == 0 and NUMPORTS < 5:
                             NUMPORTS +=1
                             L[ROW][COL].state = 8
                             BUDGET -= PORTCOST
+                            KEYXMARGIN = 103 #1030! change for test run
+                            KEYYMARGIN = 561  #+2% of 550 - box starts later (to decrease)
+                            KEYXSIZE = 90
+                            KEYYSIZE = 259  # -2% of 270 - height decreases
+                            pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # money bar
                     elif L[ROW][COL].pd > 0 and L[ROW][COL].state != 7:
                         if 0 < NUMPORTS <= 5:
                             L[ROW][COL].state = 7
                             NUMFARMS += 1
                             BUDGET -= FARMCOST
+                            KEYXMARGIN = 1030
+                            KEYYMARGIN = 577.5  # +5 m% of 550 - box starts later (to decrease)
+                            KEYXSIZE = 90
+                            KEYYSIZE = 256.5  # -5% of 270 - height decreases
+                            pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # money bar
                             SCORE += L[ROW][COL].pd * 10
+                            MODE = 1 #test run
+                            KEYXMARGIN = 113 #1130! changed for test run
+                            KEYYMARGIN = 810 - (L[ROW][COL].pd * 10) # -score change (to increase)
+                            KEYXSIZE = 90
+                            KEYYSIZE = 10 + (L[ROW][COL].pd * 10) # +score change (gets taller)
+                            pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # carbon offset bar
                             path = find_nearest_goal(L, ROW, COL)
                             for i in range(len(path)):
                                 if i != len(path)-1 and i != 0 and L[path[i][0]][path[i][1]].state != 7:
