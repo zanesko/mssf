@@ -15,6 +15,14 @@ KEYXMARGIN = 1000
 KEYYMARGIN = 450
 KEYXSIZE = 250
 KEYYSIZE = 370
+MONEYXMARGIN = 1030
+MONEYYMARGIN = 550
+MONEYXSIZE = 90
+MONEYYSIZE = 270
+SCOREXMARGIN = 1130
+SCOREYMARGIN = 810
+SCOREXSIZE = 90
+SCOREYSIZE = 10
 TEXTFONT = None #splash screen font and size
 TEXTFONT2 = None #key title font and size
 TEXTFONT3 = None #wind power (key) font and size
@@ -181,6 +189,7 @@ def draw_text(text, font, text_COL, row, col):
 
 def draw_canvas():
     global L, ROW, COL, NUMPORTS, NUMFARMS, MODE, BUDGET, SCORE
+    global MONEYYSIZE, MONEYYMARGIN, MONEYXSIZE, MONEYXMARGIN, SCOREXMARGIN, SCOREYMARGIN, SCOREXSIZE, SCOREYSIZE
     DISPLAYSURF.fill(BGCOLOR)
     DISPLAYSURF.blit(bg, (0,0))
     if MODE == 0:
@@ -194,8 +203,8 @@ def draw_canvas():
         KEYXSIZE = 810
         KEYYSIZE = 90
         pygame.draw.rect(DISPLAYSURF, (166, 207, 218), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #blue rectangle
-        draw_text("Please select up to 5 ports before placing a wind farm.", TEXTFONT, (0,0,0), 348, 385)
-        draw_text("Click anywhere to continue.", TEXTFONT, (0,0,0), 518, 430) #user instructions
+        #draw_text("Please select up to 5 ports before placing a wind farm.", TEXTFONT, (0,0,0), 348, 385)
+        #draw_text("Click anywhere to continue.", TEXTFONT, (0,0,0), 518, 430) #user instructions
         for event in pygame.event.get():
             if event.type == MOUSEBUTTONDOWN :
                 MODE = 1
@@ -211,16 +220,16 @@ def draw_canvas():
         KEYXSIZE = 250
         KEYYSIZE = 390
         pygame.draw.rect(DISPLAYSURF, (166, 207, 218), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #blue box
-        KEYXMARGIN = 1030
-        KEYYMARGIN = 550
-        KEYXSIZE = 90
-        KEYYSIZE = 270
-        pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #money bar
-        KEYXMARGIN = 1130
-        KEYYMARGIN = 810
-        KEYXSIZE = 90
-        KEYYSIZE = 10
-        pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #carbon offset bar
+        #MONEYXMARGIN = 1030
+        #MONEYYMARGIN = 550
+        #MONEYXSIZE = 90
+        #MONEYYSIZE = 270
+        #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE)) #money bar
+        #SCOREXMARGIN = 1130
+        #SCOREYMARGIN = 810
+        #SCOREXSIZE = 90
+        #SCOREYSIZE = 10
+        #pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(SCOREXMARGIN, SCOREYMARGIN, SCOREXSIZE, SCOREYSIZE)) #carbon offset bar
         for event in pygame.event.get():
             if MODE == 1:
                 if event.type == MOUSEBUTTONDOWN :
@@ -235,42 +244,46 @@ def draw_canvas():
                             L[ROW][COL].state = 0
                             NUMPORTS -= 1
                             BUDGET += PORTCOST
-                            KEYXMARGIN = 1030
-                            KEYYMARGIN = 539 # -2% of 550 - box starts earlier (to increase)
-                            KEYXSIZE = 90
-                            KEYYSIZE = 281 # +2% of 270 - height increases
-                            pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # money bar
+                            MONEYXMARGIN = 1030
+                            MONEYYMARGIN = - MONEYYMARGIN * 5.5 # -2% of 550 - box starts earlier (to increase)
+                            MONEYXSIZE = 90
+                            MONEYYSIZE = + MONEYYSIZE * 2.7  # +2% of 270 - height increases
+                            #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                         elif L[ROW][COL].state == 0 and NUMPORTS < 5:
                             NUMPORTS +=1
                             L[ROW][COL].state = 8
                             BUDGET -= PORTCOST
-                            KEYXMARGIN = 103 #1030! change for test run
-                            KEYYMARGIN = 561  #+2% of 550 - box starts later (to decrease)
-                            KEYXSIZE = 90
-                            KEYYSIZE = 259  # -2% of 270 - height decreases
-                            pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # money bar
+                            MONEYXMARGIN = 1030  #1030! change for test run
+                            MONEYYMARGIN = + MONEYYMARGIN * 5.5 #+2% of 550 - box starts later (to decrease)
+                            MONEYXSIZE = 90
+                            MONEYYSIZE = - MONEYYSIZE * 2.7  # -2% of 270 - height decreases
+                            #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                     elif L[ROW][COL].pd > 0 and L[ROW][COL].state != 7:
                         if 0 < NUMPORTS <= 5:
                             L[ROW][COL].state = 7
                             NUMFARMS += 1
                             BUDGET -= FARMCOST
-                            KEYXMARGIN = 1030
-                            KEYYMARGIN = 577.5  # +5 m% of 550 - box starts later (to decrease)
-                            KEYXSIZE = 90
-                            KEYYSIZE = 256.5  # -5% of 270 - height decreases
-                            pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # money bar
+                            MONEYXMARGIN = 1030
+                            MONEYYMARGIN = + MONEYYMARGIN * 5.5 # +5% of 550 - box starts later (to decrease)
+                            MONEYXSIZE = 90
+                            MONEYYSIZE = - MONEYYSIZE * 2.7 # -5% of 270 - height decreases
+                            #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                             SCORE += L[ROW][COL].pd * 10
-                            MODE = 1 #test run
-                            KEYXMARGIN = 113 #1130! changed for test run
-                            KEYYMARGIN = 810 - (L[ROW][COL].pd * 10) # -score change (to increase)
-                            KEYXSIZE = 90
-                            KEYYSIZE = 10 + (L[ROW][COL].pd * 10) # +score change (gets taller)
-                            pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # carbon offset bar
+                            SCOREXMARGIN = 1130  #1130! changed for test run
+                            SCOREYMARGIN = SCOREYMARGIN - (L[ROW][COL].pd * 10) # -score change (to increase)
+                            SCOREXSIZE = 90
+                            SCOREYSIZE = SCOREYSIZE + (L[ROW][COL].pd * 10) # +score change (gets taller)
+                            #pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(SCOREXMARGIN, SCOREYMARGIN, SCOREXSIZE, SCOREYSIZE))  #score bar
                             path = find_nearest_goal(L, ROW, COL)
                             for i in range(len(path)):
                                 if i != len(path)-1 and i != 0 and L[path[i][0]][path[i][1]].state != 7:
                                     L[path[i][0]][path[i][1]].state = 1
                                     BUDGET -= PATHCOST
+                                    MONEYXMARGIN = 1030
+                                    MONEYYMARGIN = + MONEYYMARGIN * 5.5  # +0.5% of 550 - box starts later (to decrease)
+                                    MONEYXSIZE = 90
+                                    MONEYYSIZE = - MONEYYSIZE * 2.7  # -0.5% of 270 - height decreases
+                                    #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                             #run astar algorithm
                 elif event.type == MOUSEMOTION :
                     xpos = event.pos[0]
@@ -292,9 +305,9 @@ def draw_canvas():
                     SCORE = 0
 
         #draw text in key
+        draw_text("Cost vs Generated Power", TEXTFONT2, (0, 0, 0), 1010, 510)
         if L[ROW][COL].pd > 0:
             draw_text("Wind Power Density", TEXTFONT2, (0, 0, 0), 1010, 438)
-            draw_text("Cost vs Generated Power", TEXTFONT2, (0, 0, 0), 1010, 510)
             draw_text(str(L[ROW][COL].pd) + " kW/m²", TEXTFONT3, (0, 0, 0), 1010, 470)
 
 
@@ -315,6 +328,8 @@ def draw_canvas():
                 #    idx = (i+13*j) % 7 + 1
                 #    DISPLAYSURF.blit(state_img[idx], spaceRect)
 
+        pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE)) # money bar
+        pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(SCOREXMARGIN, SCOREYMARGIN, SCOREXSIZE, SCOREYSIZE))  #score bar
 
         if MODE == 2:
             KEYXMARGIN = 240
