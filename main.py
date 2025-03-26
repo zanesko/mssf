@@ -3,7 +3,7 @@ project SCIFAIR!
 zelda 08/09/24
 '''
 
-import random, copy, sys, pygame, io, math, mapdata, heapq
+import random, copy, sys, pygame, io, math, mapdata, heapq, pprint
 from pygame.locals import *
 #global variables
 ROW = 0
@@ -15,10 +15,17 @@ KEYXMARGIN = 1000
 KEYYMARGIN = 450
 KEYXSIZE = 250
 KEYYSIZE = 370
-TEXTFONT = None
+TEXTFONT = None #splash screen font and size
+TEXTFONT2 = None #key title font and size
+TEXTFONT3 = None #wind power (key) font and size
 BGCOLOR = (84, 130, 156)
 NUMPORTS = 0
 NUMFARMS = 0
+PORTCOST = 2
+FARMCOST = 5
+PATHCOST = 0.5
+BUDGET = 100
+SCORE = 0
 MODE = 0  #user instructions splash screen, MODE = 1 is the regular game
 
 
@@ -173,7 +180,7 @@ def draw_text(text, font, text_COL, row, col):
 
 
 def draw_canvas():
-    global L, ROW, COL, NUMPORTS, NUMFARMS, MODE
+    global L, ROW, COL, NUMPORTS, NUMFARMS, MODE, BUDGET, SCORE
     DISPLAYSURF.fill(BGCOLOR)
     DISPLAYSURF.blit(bg, (0,0))
     if MODE == 0:
@@ -181,63 +188,93 @@ def draw_canvas():
         KEYYMARGIN = 373
         KEYXSIZE = 824
         KEYYSIZE = 104
-        pygame.draw.rect(DISPLAYSURF, (150, 108, 175), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        pygame.draw.rect(DISPLAYSURF, (232, 255, 240), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #white border
         KEYXMARGIN = 247
         KEYYMARGIN = 380
         KEYXSIZE = 810
         KEYYSIZE = 90
-        pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
-        draw_text("Please select up to 5 ports before placing a wind farm.", TEXTFONT, (0,0,0), 290, 385)
-        draw_text("Click anywhere to continue.", TEXTFONT, (0,0,0), 460, 430)#user instructions
+        pygame.draw.rect(DISPLAYSURF, (166, 207, 218), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #blue rectangle
+        draw_text("Please select up to 5 ports before placing a wind farm.", TEXTFONT, (0,0,0), 348, 385)
+        draw_text("Click anywhere to continue.", TEXTFONT, (0,0,0), 518, 430) #user instructions
         for event in pygame.event.get():
             if event.type == MOUSEBUTTONDOWN :
                 MODE = 1
     else:
         # draw key rectangle (light blue)
         KEYXMARGIN = 993
-        KEYYMARGIN = 443
+        KEYYMARGIN = 423
         KEYXSIZE = 264
-        KEYYSIZE = 384
-        pygame.draw.rect(DISPLAYSURF, (150, 108, 175), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        KEYYSIZE = 404
+        pygame.draw.rect(DISPLAYSURF, (232, 255, 240), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #white border
         KEYXMARGIN = 1000
-        KEYYMARGIN = 450
+        KEYYMARGIN = 430
         KEYXSIZE = 250
-        KEYYSIZE = 370
-        pygame.draw.rect(DISPLAYSURF, (174, 231, 245), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))
+        KEYYSIZE = 390
+        pygame.draw.rect(DISPLAYSURF, (166, 207, 218), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #blue box
+        KEYXMARGIN = 1030
+        KEYYMARGIN = 550
+        KEYXSIZE = 90
+        KEYYSIZE = 270
+        pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #money bar
+        KEYXMARGIN = 1130
+        KEYYMARGIN = 810
+        KEYXSIZE = 90
+        KEYYSIZE = 10
+        pygame.draw.rect(DISPLAYSURF, (87, 95, 149), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE)) #carbon offset bar
         for event in pygame.event.get():
-            if event.type == MOUSEBUTTONDOWN :
-                xpos = event.pos[0]
-                COL = xpos // 20
-                ypos = event.pos[1]
-                ROW = ypos // 20
-                # overlay image at ROW, COL
-                #print("mousedown: ", ROW,COL)
-                if L[ROW][COL].is_port and NUMFARMS == 0:
-                    if L[ROW][COL].state == 8 and NUMPORTS > 1:
-                        L[ROW][COL].state = 0
-                        NUMPORTS -= 1
-                    elif L[ROW][COL].state == 0 and NUMPORTS < 5:
-                        NUMPORTS +=1
-                        L[ROW][COL].state = 8
-                elif L[ROW][COL].pd > 0 and L[ROW][COL].state != 7:
-                    if 0 < NUMPORTS <= 5:
-                        L[ROW][COL].state = 7
-                        NUMFARMS += 1
-                        path = find_nearest_goal(L, ROW, COL)
-                        for i in range(len(path)):
-                            if i != len(path)-1 and i != 0 and L[path[i][0]][path[i][1]].state != 7:
-                                L[path[i][0]][path[i][1]].state = 1
-                        #run astar algorithm
-            elif event.type == MOUSEMOTION :
-                xpos = event.pos[0]
-                COL = xpos // 20
-                ypos = event.pos[1]
-                ROW = ypos // 20
-
+            if MODE == 1:
+                if event.type == MOUSEBUTTONDOWN :
+                    xpos = event.pos[0]
+                    COL = xpos // 20
+                    ypos = event.pos[1]
+                    ROW = ypos // 20
+                    # overlay image at ROW, COL
+                    #print("mousedown: ", ROW,COL)
+                    if L[ROW][COL].is_port and NUMFARMS == 0:
+                        if L[ROW][COL].state == 8 and NUMPORTS > 1:
+                            L[ROW][COL].state = 0
+                            NUMPORTS -= 1
+                            BUDGET += PORTCOST
+                        elif L[ROW][COL].state == 0 and NUMPORTS < 5:
+                            NUMPORTS +=1
+                            L[ROW][COL].state = 8
+                            BUDGET -= PORTCOST
+                    elif L[ROW][COL].pd > 0 and L[ROW][COL].state != 7:
+                        if 0 < NUMPORTS <= 5:
+                            L[ROW][COL].state = 7
+                            NUMFARMS += 1
+                            BUDGET -= FARMCOST
+                            SCORE += L[ROW][COL].pd * 10
+                            path = find_nearest_goal(L, ROW, COL)
+                            for i in range(len(path)):
+                                if i != len(path)-1 and i != 0 and L[path[i][0]][path[i][1]].state != 7:
+                                    L[path[i][0]][path[i][1]].state = 1
+                                    BUDGET -= PATHCOST
+                            #run astar algorithm
+                elif event.type == MOUSEMOTION :
+                    xpos = event.pos[0]
+                    COL = xpos // 20
+                    ypos = event.pos[1]
+                    ROW = ypos // 20
+                if BUDGET <= 0:
+                    MODE = 2
+            else:
+                if event.type == MOUSEBUTTONDOWN:
+                    MODE = 1
+                    # clear state
+                    for i in range(len(L)):
+                        for j in range(len(L[i])):
+                            L[i][j].state = 0
+                    NUMPORTS = 0
+                    NUMFARMS = 0
+                    BUDGET = 100
+                    SCORE = 0
 
         #draw text in key
         if L[ROW][COL].pd > 0:
-            draw_text(str(L[ROW][COL].pd) + " kW/m²",  TEXTFONT, (0, 0, 0), 1010, 475)
+            draw_text("Wind Power Density", TEXTFONT2, (0, 0, 0), 1010, 438)
+            draw_text("Cost vs Generated Power", TEXTFONT2, (0, 0, 0), 1010, 510)
+            draw_text(str(L[ROW][COL].pd) + " kW/m²", TEXTFONT3, (0, 0, 0), 1010, 470)
 
 
         spaceRect = pygame.Rect(0, 0, 20, 20)
@@ -257,6 +294,33 @@ def draw_canvas():
                 #    idx = (i+13*j) % 7 + 1
                 #    DISPLAYSURF.blit(state_img[idx], spaceRect)
 
+
+        if MODE == 2:
+            KEYXMARGIN = 240
+            KEYYMARGIN = 373
+            KEYXSIZE = 824
+            KEYYSIZE = 104
+            pygame.draw.rect(DISPLAYSURF, (232, 255, 240), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # white border
+            KEYXMARGIN = 247
+            KEYYMARGIN = 380
+            KEYXSIZE = 810
+            KEYYSIZE = 90
+            pygame.draw.rect(DISPLAYSURF, (166, 207, 218), pygame.Rect(KEYXMARGIN, KEYYMARGIN, KEYXSIZE, KEYYSIZE))  # blue rectangle
+            draw_text("You've generated" + "(this many MW)" + "! Great job!", TEXTFONT, (0, 0, 0), 348, 385)
+            draw_text("Click anywhere to play again.", TEXTFONT, (0, 0, 0), 518, 430)  # user instructions
+
+            for event in pygame.event.get():
+                if event.type == MOUSEBUTTONDOWN:
+                    MODE = 1
+                    #clear state
+                    for i in range(len(L)):
+                        for j in range(len(L[i])) :
+                            L[i][j].state = 0
+                    NUMPORTS = 0
+                    NUMFARMS = 0
+                    BUDGET = 100
+                    SCORE = 0
+
     pygame.display.update()
     FPSCLOCK.tick()
 
@@ -269,13 +333,16 @@ def run_game():
 def main():
     global FPSCLOCK, DISPLAYSURF
     global WINDOWWIDTH, WINDOWHEIGHT
-    global TEXTFONT
+    global TEXTFONT, TEXTFONT2, TEXTFONT3
 
     pygame.init()
-    TEXTFONT = pygame.font.SysFont("Arial", 30)
+    TEXTFONT = pygame.font.SysFont("arialrounded", 25)
+    TEXTFONT2 = pygame.font.SysFont("Tahoma", 20)
+    TEXTFONT3 = pygame.font.SysFont("futura", 23)
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('SCIFAIR')
+    pprint.pprint(pygame.font.get_fonts())
 
 
     while True:
