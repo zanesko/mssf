@@ -245,18 +245,18 @@ def draw_canvas():
                             NUMPORTS -= 1
                             BUDGET += PORTCOST
                             MONEYXMARGIN = 1030
-                            MONEYYMARGIN = - MONEYYMARGIN * 5.5 # -2% of 550 - box starts earlier (to increase)
+                            MONEYYMARGIN -= MONEYYMARGIN * 5.5 # -2% of 550 - box starts earlier (to increase)
                             MONEYXSIZE = 90
-                            MONEYYSIZE = + MONEYYSIZE * 2.7  # +2% of 270 - height increases
+                            MONEYYSIZE += MONEYYSIZE * 2.7  # +2% of 270 - height increases
                             #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                         elif L[ROW][COL].state == 0 and NUMPORTS < 5:
                             NUMPORTS +=1
                             L[ROW][COL].state = 8
                             BUDGET -= PORTCOST
                             MONEYXMARGIN = 1030  #1030! change for test run
-                            MONEYYMARGIN = + MONEYYMARGIN * 5.5 #+2% of 550 - box starts later (to decrease)
+                            MONEYYMARGIN += MONEYYMARGIN * 5.5 #+2% of 550 - box starts later (to decrease)
                             MONEYXSIZE = 90
-                            MONEYYSIZE = - MONEYYSIZE * 2.7  # -2% of 270 - height decreases
+                            MONEYYSIZE -= MONEYYSIZE * 2.7  # -2% of 270 - height decreases
                             #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                     elif L[ROW][COL].pd > 0 and L[ROW][COL].state != 7:
                         if 0 < NUMPORTS <= 5:
@@ -264,9 +264,9 @@ def draw_canvas():
                             NUMFARMS += 1
                             BUDGET -= FARMCOST
                             MONEYXMARGIN = 1030
-                            MONEYYMARGIN = + MONEYYMARGIN * 5.5 # +5% of 550 - box starts later (to decrease)
+                            MONEYYMARGIN += MONEYYMARGIN * 5.5 # +5% of 550 - box starts later (to decrease)
                             MONEYXSIZE = 90
-                            MONEYYSIZE = - MONEYYSIZE * 2.7 # -5% of 270 - height decreases
+                            MONEYYSIZE -= MONEYYSIZE * 2.7 # -5% of 270 - height decreases
                             #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                             SCORE += L[ROW][COL].pd * 10
                             SCOREXMARGIN = 1130  #1130! changed for test run
@@ -280,9 +280,9 @@ def draw_canvas():
                                     L[path[i][0]][path[i][1]].state = 1
                                     BUDGET -= PATHCOST
                                     MONEYXMARGIN = 1030
-                                    MONEYYMARGIN = + MONEYYMARGIN * 5.5  # +0.5% of 550 - box starts later (to decrease)
+                                    MONEYYMARGIN += MONEYYMARGIN * 5.5  # +0.5% of 550 - box starts later (to decrease)
                                     MONEYXSIZE = 90
-                                    MONEYYSIZE = - MONEYYSIZE * 2.7  # -0.5% of 270 - height decreases
+                                    MONEYYSIZE -= MONEYYSIZE * 2.7  # -0.5% of 270 - height decreases
                                     #pygame.draw.rect(DISPLAYSURF, (118, 151, 93), pygame.Rect(MONEYXMARGIN, MONEYYMARGIN, MONEYXSIZE, MONEYYSIZE))  # money bar
                             #run astar algorithm
                 elif event.type == MOUSEMOTION :
@@ -303,6 +303,15 @@ def draw_canvas():
                     NUMFARMS = 0
                     BUDGET = 100
                     SCORE = 0
+                    MONEYXMARGIN = 1030
+                    MONEYYMARGIN = 550
+                    MONEYXSIZE = 90
+                    MONEYYSIZE = 270
+                    SCOREXMARGIN = 1130
+                    SCOREYMARGIN = 810
+                    SCOREXSIZE = 90
+                    SCOREYSIZE = 10
+
 
         #draw text in key
         draw_text("Cost vs Generated Power", TEXTFONT2, (0, 0, 0), 1010, 510)
